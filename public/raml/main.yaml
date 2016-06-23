@@ -1,0 +1,172 @@
+#%RAML 1.0
+---
+title: Управление проектами
+baseUri: /api
+version: v1
+securedBy: [basic]
+securitySchemes:
+  basic:
+    description: |
+     This API supports Basic Authentication.
+    type: Basic Authentication
+
+mediaType: application/json
+types:
+  Project:
+    type: object
+    properties:
+      name:
+        description: Наименование проекта
+        type: string
+      deadline:
+        description: Предполагаемое время окончания проекта
+        type: date-only
+      status:
+        type: integer
+        required: false
+        default: 1
+        description: |
+          Статус проекта
+          1 - новый
+          2 - завершен
+          3 - в процессе
+          4 - отменен
+  Task:
+    type: object
+    properties:
+      name:
+        description: Наименование задачи
+        type: string
+      description:
+        description: Описание задачи
+        type: string
+      deadline:
+        description: Директивные сроки
+        type: datetime-only
+      assigned_to:
+        description: Идентификатор пользователя, на которого задача назначена
+        type: integer
+  Reassignment:
+    type: object
+    properties:
+      to:
+        description: Новый назначенный
+        type: integer
+      comment:
+        description: Комментарий
+        type: string
+  User:
+    type: object
+    properties:
+      first_name:
+        description: Имя
+        type: string
+      last_name:
+        description: Фамилия
+        type: string
+      birthday:
+        description: День рождения
+        type: date-only
+      avatar:
+        description: URL аватара
+        type: string
+      email:
+        description: email
+        type: string
+
+/projects:
+  get:
+    description: Просмотр списка своих проектов (созданные и назначенные как исполнитель)
+  post:
+    description: Создать новый проект
+    body:
+      application/json:
+        type: Project
+        example:
+          value:
+            name: Крутой проект
+            deadline: 2016-07-15
+            status: 3
+  /{projectId}:
+    get:
+      description: Просмотр карточки проекта
+    put:
+      description: Обновление проекта
+      body:
+        application/json:
+          type: Project
+          example:
+            value:
+              name: Другой проект
+              deadline: 2016-08-30
+              status: 2
+    delete:
+      description: Удалить проект
+
+    /tasks:
+      description: Коллекция задач проекта
+      get:
+        description: Просмотр списка задач проекта
+      post:
+        description: Создать новую задачу в рамках проекта
+        body:
+          application/json:
+            type: Task
+            example:
+              value:
+                name: Крутая задача
+                description: Сделай красиво
+                deadline: 2016-07-01T20:00:00
+                assigned_to: 1
+      /{taskId}:
+        delete:
+          description: Удалить задачу
+        get:
+          description: Просмотр карточки задачи
+        put:
+          description: Обновить задачу
+          body:
+            application/json:
+              type: Task
+              example:
+                value:
+                  name: Крутая задача
+                  description: Можно попозже
+                  deadline: 2016-08-01T20:00:00
+                  assigned_to: 1
+        /reassignments:
+          get:
+            description: Просмотр истории назначений
+          post:
+            description: Переназначить задачу другому пользователю
+            body:
+              application/json:
+                type: Reassignment
+                example:
+                  value:
+                    to: 2
+                    comment: Пусть первый отдохнет
+
+/tasks:
+  description: Коллекция назначенных на авторизованного пользователя задач
+  get:
+    description: Просмотр списка назначенных задач
+  /{taskId}:
+    get:
+      description: Просмотр карточки задачи
+/me:
+  description: Текущий авторизованный пользователь
+  get:
+    description: Просмотр авторизованного пользователя
+  put:
+    description: Обновление профиля
+    body:
+      application/json:
+        type: User
+        example:
+          value:
+            email: test@test.test
+            first_name: new test
+            last_name: foo bar
+            avatar: https://www.google.ru/images/nav_logo242_hr.png
+            birthday: 1990-09-18
